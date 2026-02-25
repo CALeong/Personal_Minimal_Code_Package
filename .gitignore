@@ -1,5 +1,8 @@
 *
 !.gitignore
 !KPM/
+!KPM/**
 !Lattice/
+!Lattice/**
 !Operations/
+!Operations/**
