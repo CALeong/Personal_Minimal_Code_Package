@@ -340,3 +340,19 @@ def honeycomb_axial_magnetic_field_sparse(num_levels, qax):
                                                                               - curr_gen_rvals[np.roll(curr_gen_bsites_ind, 1)] ** 2))
 
     return ham
+
+
+def honeycomb_real_magnetic_field_sparse_nonHermitian(num_levels, beta, alpha_NH):
+    ham = honeycomb_real_magnetic_field_sparse(num_levels, beta).tocsr()
+    asites = np.array([], dtype=np.int64)
+    bsites = np.array([], dtype=np.int64)
+    first_site_on_gen = honeycomb_first_site_on_gen(num_levels)
+    for nl in range(num_levels):
+        new_asites, new_bsites = site_assignment_honeycomb_gen(nl, first_site_on_gen)
+        asites = np.append(asites, new_asites)
+        bsites = np.append(bsites, new_bsites)
+    sbl_basis = np.concatenate((asites, bsites))
+    ham = ham[:, sbl_basis][sbl_basis, :]
+    nh_multiply_factor = np.concatenate((np.repeat(1 - alpha_NH, int(ham.shape[0]/2)),
+                                         np.repeat(1 + alpha_NH, int(ham.shape[0]/2))))
+    return ham.multiply(nh_multiply_factor)
