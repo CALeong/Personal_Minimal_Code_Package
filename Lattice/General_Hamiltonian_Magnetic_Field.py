@@ -1,4 +1,4 @@
-from Fundamental.General_Hamiltonian import *
+from Lattice.General_Hamiltonian import *
 
 # Same as Fundamental.Hamiltonian_PeierlsSubstitution Number_Plaquets but cleaned up
 def number_plaquets_q3(p, num_levels):

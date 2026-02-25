@@ -1,4 +1,4 @@
-from Fundamental.General_Hamiltonian import *
+from Lattice.General_Hamiltonian import *
 
 def strain_conn(qax, r1vals, r2vals, r1signs, r2signs):
     return np.exp(qax * (r1signs * r1vals**2 + r2signs * r2vals**2))

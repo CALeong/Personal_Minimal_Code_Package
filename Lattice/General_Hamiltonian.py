@@ -1,27 +1,6 @@
 import numpy as np
-from Fundamental.Number_Points import points
 from scipy.sparse import dok_matrix
-from scipy.sparse import lil_matrix
-from Fundamental.Hamiltonian_PeierlsSubstitution import Number_Plaquets
 import time
-
-def number_points_q3_general_from_number_plaquets(p, num_levels):
-    q = 3
-
-    if num_levels == 1:
-        sites_per_level = np.array([p])
-    elif num_levels == 2:
-        sites_per_level = np.array([p, p * (p - 3)])
-    elif num_levels >= 3:
-        sites_per_level = np.array([p, p*(p-3), (p-4)*p + p*(p-5)*(p-3)])
-    number_plaqs_per_level = Number_Plaquets(p, q, num_levels)[0]
-    for n in range(3, num_levels):
-        sites_per_level = np.append(sites_per_level, (p-5)*(number_plaqs_per_level[n-1] - number_plaqs_per_level[n-2])*(p-3)
-                                    + (p-6)*number_plaqs_per_level[n-2]*(p-3)
-                                    + number_plaqs_per_level[n-1]*(p-4))
-
-    sites_per_level = [int(i) for i in sites_per_level]
-    return(sites_per_level, np.sum(sites_per_level))
 
 def number_points_q3_general_from_repeating_pattern(p, num_levels):
     q= 3
