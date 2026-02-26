@@ -1,4 +1,5 @@
 from Lattice.General_Hamiltonian import *
+from Lattice.General_Hamiltonian_Strain import sublattice_label_q3
 
 # Same as Fundamental.Hamiltonian_PeierlsSubstitution Number_Plaquets but cleaned up
 def number_plaquets_q3(p, num_levels):
@@ -300,3 +301,15 @@ def general_q3_hamiltonian_with_real_B_field_superoptimized(p, num_levels, beta)
 
     return ham
 
+
+def general_q3_hamiltonian_with_real_B_field_NH(p, num_levels, beta, alpha_NH):
+    ham = general_q3_hamiltonian_with_real_B_field_superoptimized(p, num_levels, beta)
+    asites, bsites = sublattice_label_q3(p, num_levels)
+    sublat_basis = np.concatenate((asites, bsites))
+
+    ham = ham.tocsr()
+    ham = ham[:, sublat_basis][sublat_basis, :]
+    ham = ham.multiply(np.concatenate((np.repeat(1 + alpha_NH, int(ham.shape[0] / 2)),
+                                       np.repeat(1 - alpha_NH, int(ham.shape[0] / 2)))).reshape(-1, 1))
+
+    return ham
