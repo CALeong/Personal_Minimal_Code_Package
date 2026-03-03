@@ -1,6 +1,7 @@
 import numpy as np
 import scipy
 
+
 def honeycomb_points(nl):
     def num_sites_higherlevel(lev):
         return ((lev-2)*2*6)+(3*6)
@@ -14,6 +15,7 @@ def honeycomb_points(nl):
             numbers_perlevel = np.append(numbers_perlevel, num_sites_higherlevel(n))
     total_numpoints = np.sum(numbers_perlevel)
     return numbers_perlevel, total_numpoints
+
 
 def honeycomb_first_site_on_gen(num_levels):
     points_per_level = honeycomb_points(num_levels)[0]
@@ -194,27 +196,29 @@ def honeycomb_real_magnetic_field_sparse(num_levels, beta):
     return ham
 
 
-def strain_intralayer_rvals(nl, anchor_sites, anchor_site_rvals, first_site_next_gen):
+def strain_intralayer_rvals(nl, anchor_sites, anchor_site_rvals):
     num_interval_sites = anchor_sites[1:] - anchor_sites[:-1]
     rvals = np.array([])
     for i, nis in enumerate(num_interval_sites):
-        if (nis % 2) == 0:
-            rvals = np.append(rvals, np.arange(anchor_site_rvals[i], anchor_site_rvals[i] + nis / 2 + 1))
-            # rvals = np.append(rvals, np.flip(np.arange(anchor_site_rvals[i + 1], anchor_site_rvals[i + 1] + nis / 2 - 2))[:-1])
+        if nis == 2:
+            rvals = np.append(rvals, np.array([anchor_site_rvals[i], anchor_site_rvals[i] + 1]))
+        elif nis == 3:
+            rvals = np.append(rvals, np.array([anchor_site_rvals[i],
+                                               anchor_site_rvals[i] + 1,
+                                               anchor_site_rvals[i+1] + 1]))
         else:
-            rvals = np.append(rvals, np.arange(anchor_site_rvals[i], anchor_site_rvals[i] + ((nis - 1) / 2) + 1))
-            rvals = np.append(rvals, np.flip(np.arange(anchor_site_rvals[i + 1], anchor_site_rvals[i + 1] + ((nis - 1) / 2) + 1))[:-1])
-
+            raise ValueError
     if (nl % 2) == 1:
-        last_interval_sites = first_site_next_gen - anchor_sites[-1]
-        if (last_interval_sites % 2) == 0:
-            rvals = np.append(rvals, np.arange(anchor_site_rvals[-1], anchor_site_rvals[-1] + last_interval_sites / 2 + 1))
-            # rvals = np.append(rvals, np.flip(np.arange(anchor_site_rvals[0], anchor_site_rvals[0] + last_interval_sites / 2 - 2))[:-1])
+        if nl == 1:
+            rvals = np.append(rvals, np.array([anchor_site_rvals[-1],
+                                               anchor_site_rvals[-1] + 1,
+                                               anchor_site_rvals[0] + 1]))
         else:
-            rvals = np.append(rvals, np.arange(anchor_site_rvals[-1], anchor_site_rvals[-1] + ((last_interval_sites - 1) / 2) + 1))
-            rvals = np.append(rvals, np.flip(np.arange(anchor_site_rvals[0], anchor_site_rvals[0] + ((last_interval_sites - 1) / 2) + 1))[:-1])
+            rvals = np.append(rvals, np.array([anchor_site_rvals[-1],
+                                               anchor_site_rvals[-1] + 1]))
     else:
-        rvals = np.concatenate((np.array([anchor_site_rvals[0] + 1]), rvals, np.array([anchor_site_rvals[-1]])))
+        rvals = np.append(np.array([anchor_site_rvals[0] + 1]), rvals)
+        rvals = np.append(rvals, anchor_site_rvals[-1])
 
     return rvals
 
@@ -267,7 +271,7 @@ def honeycomb_axial_magnetic_field_sparse(num_levels, qax):
         curr_gen_conn_to_above = sites_conn_to_next_gen(nl, first_site_on_gen)
         next_gen_conn_to_below = sites_conn_to_prev_gen(nl + 1, first_site_on_gen)
 
-        curr_gen_rvals = strain_intralayer_rvals(nl, curr_gen_conn_to_below, anchor_site_rvals, first_site_on_gen[nl + 1])
+        curr_gen_rvals = strain_intralayer_rvals(nl, curr_gen_conn_to_below, anchor_site_rvals)
         curr_gen_asites, curr_gen_bsites = site_assignment_honeycomb_gen(nl, first_site_on_gen)
         curr_gen_asites, curr_gen_asites_ind = np.intersect1d(sites_on_gen, curr_gen_asites, return_indices=True)[:2]
         curr_gen_bsites, curr_gen_bsites_ind = np.intersect1d(sites_on_gen, curr_gen_bsites, return_indices=True)[:2]
@@ -318,7 +322,7 @@ def honeycomb_axial_magnetic_field_sparse(num_levels, qax):
 
     sites_on_gen = np.arange(first_site_on_gen[num_levels - 1], first_site_on_gen[num_levels])
 
-    curr_gen_rvals = strain_intralayer_rvals(num_levels - 1, curr_gen_conn_to_below, anchor_site_rvals, first_site_on_gen[num_levels])
+    curr_gen_rvals = strain_intralayer_rvals(num_levels - 1, curr_gen_conn_to_below, anchor_site_rvals)
     curr_gen_asites, curr_gen_bsites = site_assignment_honeycomb_gen(num_levels - 1, first_site_on_gen)
     curr_gen_asites, curr_gen_asites_ind = np.intersect1d(sites_on_gen, curr_gen_asites, return_indices=True)[:2]
     curr_gen_bsites, curr_gen_bsites_ind = np.intersect1d(sites_on_gen, curr_gen_bsites, return_indices=True)[:2]
