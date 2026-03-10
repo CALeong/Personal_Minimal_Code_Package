@@ -5,6 +5,7 @@ from Lattice.General_Hamiltonian import number_points_q3_general_from_repeating_
 from Operations.Neighbors import identify_nearest_neighbors_hyperbolic_q3
 from Operations.Neighbors import identify_next_nearest_neighbors_hyperbolic_q3
 from Operations.Neighbors import get_neighbors_of_site
+from Operations.Neighbors import convert_neighbors_list_to_hash_table
 
 
 def check_for_isolated_sites(vacancy_ham, num_vacancies):
@@ -103,49 +104,138 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_distance_restriction(pval, nv
 
     asites, bsites = sublattice_label_q3(pval, nval)
 
-    all_site_vacancies = np.array([])
+    all_site_vacancies = np.repeat(-1.0, int(2*num_vacancies_per_sublat))
     rng = np.random.RandomState(seed=seed)
     random_seeds = rng.randint(low=1, high=10000000, size=100000)
     while_loop_counter = 0
     nn_rows, nn_cols = identify_nearest_neighbors_hyperbolic_q3(sparse_ham)
+    nn_hash_table = convert_neighbors_list_to_hash_table(nn_rows, nn_cols)
     nnn_rows, nnn_cols = identify_next_nearest_neighbors_hyperbolic_q3(sparse_ham)
+    nnn_hash_table = convert_neighbors_list_to_hash_table(nnn_rows, nnn_cols)
     exclusion_mask_asites = np.repeat(True, len(asites))
     exclusion_mask_bsites = np.repeat(True, len(bsites))
     new_excluded_asites = np.zeros(10, dtype=np.int64)
     new_excluded_bsites = np.zeros(10, dtype=np.int64)
-    while len(all_site_vacancies) < (2 * num_vacancies_per_sublat):
 
+    hash_table_asites = {v: i for (v, i) in zip(asites, np.arange(len(asites), dtype=np.int64))}
+    hash_table_bsites = {v: i for (v, i) in zip(bsites, np.arange(len(bsites), dtype=np.int64))}
+
+    while while_loop_counter < (2 * num_vacancies_per_sublat):
         curr_rng = np.random.RandomState(seed=random_seeds[while_loop_counter])
         trial_vac_asite = curr_rng.choice(asites[exclusion_mask_asites], size=1)
 
         new_excluded_asites[:] = -1
         new_excluded_bsites[:] = -1
-        nn_neighbors = get_neighbors_of_site(trial_vac_asite, nn_rows, nn_cols)
-        nnn_neighbors = get_neighbors_of_site(trial_vac_asite, nnn_rows, nnn_cols)
+        nn_neighbors = get_neighbors_of_site(trial_vac_asite[0], nn_hash_table)
+        nnn_neighbors = get_neighbors_of_site(trial_vac_asite[0], nnn_hash_table)
         new_excluded_asites[0] = trial_vac_asite[0]
         new_excluded_bsites[:len(nn_neighbors)] = nn_neighbors
         new_excluded_asites[1:len(nnn_neighbors) + 1] = nnn_neighbors
 
-        exclusion_mask_bsites[np.isin(bsites, new_excluded_bsites)] = False
+        # exclusion_mask_bsites[np.isin(bsites, new_excluded_bsites)] = False
+        exclusion_mask_bsites[[hash_table_bsites[val] for val in new_excluded_bsites[new_excluded_bsites != -1]]] = False
 
         while_loop_counter += 1
 
         curr_rng = np.random.RandomState(seed=random_seeds[while_loop_counter])
         trial_vac_bsite = curr_rng.choice(bsites[exclusion_mask_bsites], size=1)
 
-        more_nn_neighbors = get_neighbors_of_site(trial_vac_bsite, nn_rows, nn_cols)
-        more_nnn_neighbors = get_neighbors_of_site(trial_vac_bsite, nnn_rows, nnn_cols)
+        more_nn_neighbors = get_neighbors_of_site(trial_vac_bsite[0], nn_hash_table)
+        more_nnn_neighbors = get_neighbors_of_site(trial_vac_bsite[0], nnn_hash_table)
         new_excluded_bsites[len(nn_neighbors)] = trial_vac_bsite[0]
         new_excluded_asites[len(nnn_neighbors) + 1:len(nnn_neighbors) + 1 + len(more_nn_neighbors)] = more_nn_neighbors
         new_excluded_bsites[len(nn_neighbors) + 1:len(nn_neighbors) + 1 + len(more_nnn_neighbors)] = more_nnn_neighbors
 
-        exclusion_mask_asites[np.isin(asites, new_excluded_asites)] = False
-        exclusion_mask_bsites[np.isin(bsites, new_excluded_bsites)] = False
+        # exclusion_mask_asites[np.isin(asites, new_excluded_asites)] = False
+        # exclusion_mask_bsites[np.isin(bsites, new_excluded_bsites)] = False
+        exclusion_mask_asites[[hash_table_asites[val] for val in new_excluded_asites[new_excluded_asites != -1]]] = False
+        exclusion_mask_bsites[[hash_table_bsites[val] for val in new_excluded_bsites[new_excluded_bsites != -1]]] = False
 
         while_loop_counter += 1
 
-        all_site_vacancies = np.append(all_site_vacancies, trial_vac_asite)
-        all_site_vacancies = np.append(all_site_vacancies, trial_vac_bsite)
+        # all_site_vacancies = np.append(all_site_vacancies, trial_vac_asite)
+        # all_site_vacancies = np.append(all_site_vacancies, trial_vac_bsite)
+        all_site_vacancies[while_loop_counter-2] = trial_vac_asite[0]
+        all_site_vacancies[while_loop_counter-1] = trial_vac_bsite[0]
+
+    sparse_ham = sparse_ham.tocsc()
+    sparse_ham.data[np.isin(sparse_ham.indices, all_site_vacancies)] = 0
+    sparse_ham.eliminate_zeros()
+
+    sparse_ham = sparse_ham.tocsr()
+    sparse_ham.data[np.isin(sparse_ham.indices, all_site_vacancies)] = 0
+    sparse_ham.eliminate_zeros()
+
+    if isocheck:
+        check_res = check_for_isolated_sites(sparse_ham, len(all_site_vacancies))
+        print('Are there any sites that have had all neighbors removed: {}'.format(check_res))
+
+    return sparse_ham
+
+
+def hyperbolic_q3_equal_sublattice_vacancy_density_bulk_only_distance_restriction(pval, nval, vacancy_density,
+                                                                                  seed, isocheck=False):
+    if (pval % 2) != 0:
+        raise ValueError
+    sparse_ham = general_q3_hamiltonian_superoptimized(pval, nval)
+
+    points_per_level, total_num_sites = number_points_q3_general_from_repeating_pattern(pval, nval)
+    bulk_cutoff = int(np.sum(points_per_level[:-1]))
+    num_bulk_sublat_sites = int(bulk_cutoff / 2)
+    num_bulk_vacancies_per_sublat = int(round(vacancy_density * num_bulk_sublat_sites, 0))
+
+    asites, bsites = sublattice_label_q3(pval, nval)
+    bulk_asites = asites[asites < bulk_cutoff]
+    bulk_bsites = bsites[bsites < bulk_cutoff]
+
+    all_site_vacancies = np.repeat(-1.0, int(2*num_bulk_vacancies_per_sublat))
+    rng = np.random.RandomState(seed=seed)
+    random_seeds = rng.randint(low=1, high=10000000, size=100000)
+    while_loop_counter = 0
+    nn_rows, nn_cols = identify_nearest_neighbors_hyperbolic_q3(sparse_ham)
+    nn_hash_table = convert_neighbors_list_to_hash_table(nn_rows, nn_cols)
+    nnn_rows, nnn_cols = identify_next_nearest_neighbors_hyperbolic_q3(sparse_ham)
+    nnn_hash_table = convert_neighbors_list_to_hash_table(nnn_rows, nnn_cols)
+    exclusion_mask_asites = np.repeat(True, len(bulk_asites))
+    exclusion_mask_bsites = np.repeat(True, len(bulk_bsites))
+    new_excluded_asites = np.zeros(10, dtype=np.int64)
+    new_excluded_bsites = np.zeros(10, dtype=np.int64)
+
+    hash_table_asites = {v: i for (v, i) in zip(bulk_asites, np.arange(len(bulk_asites), dtype=np.int64))}
+    hash_table_bsites = {v: i for (v, i) in zip(bulk_bsites, np.arange(len(bulk_bsites), dtype=np.int64))}
+
+    while while_loop_counter < (2 * num_bulk_vacancies_per_sublat):
+        curr_rng = np.random.RandomState(seed=random_seeds[while_loop_counter])
+        trial_vac_asite = curr_rng.choice(bulk_asites[exclusion_mask_asites], size=1)
+
+        new_excluded_asites[:] = -1
+        new_excluded_bsites[:] = -1
+        nn_neighbors = get_neighbors_of_site(trial_vac_asite[0], nn_hash_table)
+        nnn_neighbors = get_neighbors_of_site(trial_vac_asite[0], nnn_hash_table)
+        new_excluded_asites[0] = trial_vac_asite[0]
+        new_excluded_bsites[:len(nn_neighbors)] = nn_neighbors
+        new_excluded_asites[1:len(nnn_neighbors) + 1] = nnn_neighbors
+
+        exclusion_mask_bsites[[hash_table_bsites[val] for val in new_excluded_bsites[new_excluded_bsites != -1]]] = False
+
+        while_loop_counter += 1
+
+        curr_rng = np.random.RandomState(seed=random_seeds[while_loop_counter])
+        trial_vac_bsite = curr_rng.choice(bulk_bsites[exclusion_mask_bsites], size=1)
+
+        more_nn_neighbors = get_neighbors_of_site(trial_vac_bsite[0], nn_hash_table)
+        more_nnn_neighbors = get_neighbors_of_site(trial_vac_bsite[0], nnn_hash_table)
+        new_excluded_bsites[len(nn_neighbors)] = trial_vac_bsite[0]
+        new_excluded_asites[len(nnn_neighbors) + 1:len(nnn_neighbors) + 1 + len(more_nn_neighbors)] = more_nn_neighbors
+        new_excluded_bsites[len(nn_neighbors) + 1:len(nn_neighbors) + 1 + len(more_nnn_neighbors)] = more_nnn_neighbors
+
+        exclusion_mask_asites[[hash_table_asites[val] for val in new_excluded_asites[new_excluded_asites != -1]]] = False
+        exclusion_mask_bsites[[hash_table_bsites[val] for val in new_excluded_bsites[new_excluded_bsites != -1]]] = False
+
+        while_loop_counter += 1
+
+        all_site_vacancies[while_loop_counter-2] = trial_vac_asite[0]
+        all_site_vacancies[while_loop_counter-1] = trial_vac_bsite[0]
 
     sparse_ham = sparse_ham.tocsc()
     sparse_ham.data[np.isin(sparse_ham.indices, all_site_vacancies)] = 0

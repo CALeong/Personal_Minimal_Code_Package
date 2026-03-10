@@ -16,6 +16,14 @@ def identify_next_nearest_neighbors_hyperbolic_q3(nntbham):
     return nz_rowind, nz_colind
 
 
-def get_neighbors_of_site(site_index, relevant_nz_rowind, relevant_nz_colind):
-    rel_mask = (relevant_nz_rowind == site_index)
-    return relevant_nz_colind[rel_mask]
+def convert_neighbors_list_to_hash_table(nz_rowind, nz_colind):
+    nz_colind_sorted = nz_colind[np.argsort(nz_rowind)]
+    nz_rowind_sorted = np.sort(nz_rowind)
+    nz_rowind_unique, row_ind_split_lines = np.unique(nz_rowind_sorted, return_index=True)
+    nz_colind_groupby_rowind = np.split(nz_colind_sorted, row_ind_split_lines[1:])
+    hash_table = {r: c for (r, c) in zip(nz_rowind_unique, nz_colind_groupby_rowind)}
+    return hash_table
+
+
+def get_neighbors_of_site(site_index, nz_hash_table):
+    return nz_hash_table[site_index]
