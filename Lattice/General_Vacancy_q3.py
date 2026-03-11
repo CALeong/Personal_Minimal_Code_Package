@@ -216,7 +216,11 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_bulk_only_distance_restrictio
         new_excluded_bsites[:len(nn_neighbors)] = nn_neighbors
         new_excluded_asites[1:len(nnn_neighbors) + 1] = nnn_neighbors
 
-        exclusion_mask_bsites[[hash_table_bsites[val] for val in new_excluded_bsites[new_excluded_bsites != -1]]] = False
+        exclusion_mask_bsites[
+            [hash_table_bsites[val]
+             for val in new_excluded_bsites[np.logical_and(new_excluded_bsites != -1,
+                                                           new_excluded_bsites < bulk_cutoff)]]
+        ] = False
 
         while_loop_counter += 1
 
@@ -229,8 +233,16 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_bulk_only_distance_restrictio
         new_excluded_asites[len(nnn_neighbors) + 1:len(nnn_neighbors) + 1 + len(more_nn_neighbors)] = more_nn_neighbors
         new_excluded_bsites[len(nn_neighbors) + 1:len(nn_neighbors) + 1 + len(more_nnn_neighbors)] = more_nnn_neighbors
 
-        exclusion_mask_asites[[hash_table_asites[val] for val in new_excluded_asites[new_excluded_asites != -1]]] = False
-        exclusion_mask_bsites[[hash_table_bsites[val] for val in new_excluded_bsites[new_excluded_bsites != -1]]] = False
+        exclusion_mask_asites[
+            [hash_table_asites[val]
+             for val in new_excluded_asites[np.logical_and(new_excluded_asites != -1,
+                                                           new_excluded_asites < bulk_cutoff)]]
+        ] = False
+        exclusion_mask_bsites[
+            [hash_table_bsites[val]
+             for val in new_excluded_bsites[np.logical_and(new_excluded_bsites != -1,
+                                                           new_excluded_bsites < bulk_cutoff)]]
+        ] = False
 
         while_loop_counter += 1
 
