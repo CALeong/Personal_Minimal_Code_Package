@@ -325,7 +325,7 @@ def general_q3_hamiltonian_superoptimized(p, num_levels):
         ham[first_gen_inter_connect_hardcode, sion] = t
 
     for n in range(1, num_levels-1): #iterate over all levels except first and last level
-        print('Working on generation: {}'.format(n+1))
+        # print('Working on generation: {}'.format(n+1))
         #sion stands for: site_indices_on_level
         sion = np.arange(first_sites_of_each_level[n], first_sites_of_each_level[n+1])
 
@@ -338,13 +338,13 @@ def general_q3_hamiltonian_superoptimized(p, num_levels):
         #Make inter generation connections
         #points_this_inter stands for: points_onthislayer_that_interconnect
         #points_next_inter stands for: points_onnextlayer_that_interconnect
-        st = time.time()
+        # st = time.time()
         points_this_inter = sion[get_if_point_is_connected_with_upper_layer_q3_general_optimized(p, n)]
-        print(time.time() - st)
+        # print(time.time() - st)
         #Not using get_points_that_connect_with_prev_layer_q3_general_optimized since its actually not optimized
-        st = time.time()
+        # st = time.time()
         points_next_inter = get_points_that_connect_with_prev_layer_q3_general_optimized(p, n+1, first_sites_of_each_level[n+1])
-        print(time.time()-st)
+        # print(time.time()-st)
         ham[points_this_inter, points_next_inter] = t
         ham[points_next_inter, points_this_inter] = t
 
