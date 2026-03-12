@@ -106,7 +106,12 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_distance_restriction(pval, nv
 
     all_site_vacancies = np.repeat(-1.0, int(2*num_vacancies_per_sublat))
     rng = np.random.RandomState(seed=seed)
-    random_seeds = rng.randint(low=1, high=10000000, size=100000)
+    if len(all_site_vacancies) <= 100000:
+        random_seeds = rng.randint(low=1, high=10000000, size=100000)
+    elif len(all_site_vacancies) <= 1000000:
+        random_seeds = rng.randint(low=1, high=100000000, size=1000000)
+    else:
+        random_seeds = rng.randint(low=1, high=1000000000, size=10000000)
     while_loop_counter = 0
     nn_rows, nn_cols = identify_nearest_neighbors_hyperbolic_q3(sparse_ham)
     nn_hash_table = convert_neighbors_list_to_hash_table(nn_rows, nn_cols)
@@ -190,7 +195,12 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_bulk_only_distance_restrictio
 
     all_site_vacancies = np.repeat(-1.0, int(2*num_bulk_vacancies_per_sublat))
     rng = np.random.RandomState(seed=seed)
-    random_seeds = rng.randint(low=1, high=10000000, size=100000)
+    if len(all_site_vacancies) <= 100000:
+        random_seeds = rng.randint(low=1, high=10000000, size=100000)
+    elif len(all_site_vacancies) <= 1000000:
+        random_seeds = rng.randint(low=1, high=100000000, size=1000000)
+    else:
+        random_seeds = rng.randint(low=1, high=1000000000, size=10000000)
     while_loop_counter = 0
     nn_rows, nn_cols = identify_nearest_neighbors_hyperbolic_q3(sparse_ham)
     nn_hash_table = convert_neighbors_list_to_hash_table(nn_rows, nn_cols)
