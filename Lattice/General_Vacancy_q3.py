@@ -37,14 +37,10 @@ def hyperbolic_q3_equal_sublattice_vacancy_density(pval, nval, vacancy_density,
         bsite_vacancies = rng.choice(bsites, size=num_vacancies_per_sublat, replace=False)
 
     all_site_vacancies = np.concatenate((asite_vacancies, bsite_vacancies))
-
-    sparse_ham = sparse_ham.tocsc()
-    sparse_ham.data[np.isin(sparse_ham.indices, all_site_vacancies)] = 0
-    sparse_ham.eliminate_zeros()
+    non_vacancy_inds = np.setdiff1d(np.arange(total_num_sites).astype(np.int64), all_site_vacancies)
 
     sparse_ham = sparse_ham.tocsr()
-    sparse_ham.data[np.isin(sparse_ham.indices, all_site_vacancies)] = 0
-    sparse_ham.eliminate_zeros()
+    sparse_ham = sparse_ham[non_vacancy_inds, :][:, non_vacancy_inds]
 
     if isocheck:
         check_res = check_for_isolated_sites(sparse_ham, len(all_site_vacancies))
@@ -59,7 +55,7 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_bulk_only(pval, nval, bulk_va
         raise ValueError
     sparse_ham = general_q3_hamiltonian_superoptimized(pval, nval)
 
-    points_per_level = number_points_q3_general_from_repeating_pattern(pval, nval)[0]
+    points_per_level, total_num_sites = number_points_q3_general_from_repeating_pattern(pval, nval)
     num_sublat_bulk_sites = int(np.sum(points_per_level[:-1]) / 2)
     num_bulk_vacancies_per_sublat = int(round(bulk_vacancy_density * num_sublat_bulk_sites, 0))
 
@@ -76,14 +72,10 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_bulk_only(pval, nval, bulk_va
         bulk_bsite_vacancies = rng.choice(bulk_bsites, size=num_bulk_vacancies_per_sublat, replace=False)
 
     all_site_vacancies = np.concatenate((bulk_asite_vacancies, bulk_bsite_vacancies))
-
-    sparse_ham = sparse_ham.tocsc()
-    sparse_ham.data[np.isin(sparse_ham.indices, all_site_vacancies)] = 0
-    sparse_ham.eliminate_zeros()
+    non_vacancy_inds = np.setdiff1d(np.arange(total_num_sites).astype(np.int64), all_site_vacancies)
 
     sparse_ham = sparse_ham.tocsr()
-    sparse_ham.data[np.isin(sparse_ham.indices, all_site_vacancies)] = 0
-    sparse_ham.eliminate_zeros()
+    sparse_ham = sparse_ham[non_vacancy_inds, :][:, non_vacancy_inds]
 
     if isocheck:
         check_res = check_for_isolated_sites(sparse_ham, len(all_site_vacancies))
@@ -163,13 +155,9 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_distance_restriction(pval, nv
         all_site_vacancies[while_loop_counter-2] = trial_vac_asite[0]
         all_site_vacancies[while_loop_counter-1] = trial_vac_bsite[0]
 
-    sparse_ham = sparse_ham.tocsc()
-    sparse_ham.data[np.isin(sparse_ham.indices, all_site_vacancies)] = 0
-    sparse_ham.eliminate_zeros()
-
+    non_vacancy_inds = np.setdiff1d(np.arange(total_num_sites).astype(np.int64), all_site_vacancies)
     sparse_ham = sparse_ham.tocsr()
-    sparse_ham.data[np.isin(sparse_ham.indices, all_site_vacancies)] = 0
-    sparse_ham.eliminate_zeros()
+    sparse_ham = sparse_ham[non_vacancy_inds, :][:, non_vacancy_inds]
 
     if isocheck:
         check_res = check_for_isolated_sites(sparse_ham, len(all_site_vacancies))
@@ -259,13 +247,9 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_bulk_only_distance_restrictio
         all_site_vacancies[while_loop_counter-2] = trial_vac_asite[0]
         all_site_vacancies[while_loop_counter-1] = trial_vac_bsite[0]
 
-    sparse_ham = sparse_ham.tocsc()
-    sparse_ham.data[np.isin(sparse_ham.indices, all_site_vacancies)] = 0
-    sparse_ham.eliminate_zeros()
-
+    non_vacancy_inds = np.setdiff1d(np.arange(total_num_sites).astype(np.int64), all_site_vacancies)
     sparse_ham = sparse_ham.tocsr()
-    sparse_ham.data[np.isin(sparse_ham.indices, all_site_vacancies)] = 0
-    sparse_ham.eliminate_zeros()
+    sparse_ham = sparse_ham[non_vacancy_inds, :][:, non_vacancy_inds]
 
     if isocheck:
         check_res = check_for_isolated_sites(sparse_ham, len(all_site_vacancies))
