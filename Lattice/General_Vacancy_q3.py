@@ -8,10 +8,9 @@ from Operations.Neighbors import get_neighbors_of_site
 from Operations.Neighbors import convert_neighbors_list_to_hash_table
 
 
-def check_for_isolated_sites(vacancy_ham, num_vacancies):
-    num_nonisolated_points = len(np.unique(vacancy_ham.indices))
-    num_total_original_sites = vacancy_ham.shape[0]
-    if num_nonisolated_points == (num_total_original_sites - num_vacancies):
+def check_for_isolated_sites(vacancy_ham):
+    num_isolated_points = vacancy_ham.shape[0] - len(np.unique(vacancy_ham.indices))
+    if num_isolated_points == 0:
         return False
     else:
         return True
@@ -43,7 +42,7 @@ def hyperbolic_q3_equal_sublattice_vacancy_density(pval, nval, vacancy_density,
     sparse_ham = sparse_ham[non_vacancy_inds, :][:, non_vacancy_inds]
 
     if isocheck:
-        check_res = check_for_isolated_sites(sparse_ham, len(all_site_vacancies))
+        check_res = check_for_isolated_sites(sparse_ham)
         print('Are there any sites that have had all neighbors removed: {}'.format(check_res))
 
     return sparse_ham
@@ -78,7 +77,7 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_bulk_only(pval, nval, bulk_va
     sparse_ham = sparse_ham[non_vacancy_inds, :][:, non_vacancy_inds]
 
     if isocheck:
-        check_res = check_for_isolated_sites(sparse_ham, len(all_site_vacancies))
+        check_res = check_for_isolated_sites(sparse_ham)
         print('Are there any sites that have had all neighbors removed: {}'.format(check_res))
 
     return sparse_ham
@@ -160,7 +159,7 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_distance_restriction(pval, nv
     sparse_ham = sparse_ham[non_vacancy_inds, :][:, non_vacancy_inds]
 
     if isocheck:
-        check_res = check_for_isolated_sites(sparse_ham, len(all_site_vacancies))
+        check_res = check_for_isolated_sites(sparse_ham)
         print('Are there any sites that have had all neighbors removed: {}'.format(check_res))
 
     return sparse_ham
@@ -252,7 +251,7 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_bulk_only_distance_restrictio
     sparse_ham = sparse_ham[non_vacancy_inds, :][:, non_vacancy_inds]
 
     if isocheck:
-        check_res = check_for_isolated_sites(sparse_ham, len(all_site_vacancies))
+        check_res = check_for_isolated_sites(sparse_ham)
         print('Are there any sites that have had all neighbors removed: {}'.format(check_res))
 
     return sparse_ham
