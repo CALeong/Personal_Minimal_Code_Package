@@ -258,7 +258,7 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_bulk_only_distance_restrictio
 
 
 def hyperbolic_q3_number_nonvacant_sites_bulk_only_distance_restriction(pval, nval, vacancy_density):
-    points_per_level = number_points_q3_general_from_repeating_pattern(pval, nval)[0]
+    points_per_level, total_num_sites = number_points_q3_general_from_repeating_pattern(pval, nval)
     num_bulk_sublat_points = np.sum(points_per_level[:-1]) / 2
-    return 2 * round(vacancy_density * num_bulk_sublat_points, 0)
+    return total_num_sites - 2 * round(vacancy_density * num_bulk_sublat_points, 0)
 
