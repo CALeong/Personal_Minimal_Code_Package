@@ -255,3 +255,10 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_bulk_only_distance_restrictio
         print('Are there any sites that have had all neighbors removed: {}'.format(check_res))
 
     return sparse_ham
+
+
+def number_nonvacant_sites_bulkonly(pval, nval, vacancy_density):
+    points_per_level = number_points_q3_general_from_repeating_pattern(pval, nval)[0]
+    num_bulk_sublat_points = np.sum(points_per_level[:-1]) / 2
+    return 2 * round(vacancy_density * num_bulk_sublat_points, 0)
+
