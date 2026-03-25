@@ -2,12 +2,12 @@ import numpy as np
 import scipy
 
 
-def identify_nearest_neighbors_hyperbolic_q3(nntbham):
+def identify_nearest_neighbors(nntbham):
     nz_rowind, nz_colind = nntbham.nonzero()
     return nz_rowind, nz_colind
 
 
-def identify_next_nearest_neighbors_hyperbolic_q3(nntbham):
+def identify_next_nearest_neighbors(nntbham):
     adjacency_sq = nntbham @ nntbham
     adjacency_sq = adjacency_sq - scipy.sparse.diags_array(adjacency_sq.diagonal().astype(np.float64),
                                                            offsets=0, format='csr')
