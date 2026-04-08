@@ -1,6 +1,6 @@
 import numpy as np
 from Lattice.General_Hamiltonian_Strain import sublattice_label_q3
-from Lattice.General_Hamiltonian import general_q3_hamiltonian_superoptimized
+from Lattice.General_Hamiltonian import general_hyperbolic_q3_hamiltonian
 from Lattice.General_Hamiltonian import number_points_q3_general_from_repeating_pattern
 from Operations.Neighbors import identify_nearest_neighbors
 from Operations.Neighbors import identify_next_nearest_neighbors
@@ -23,7 +23,7 @@ def hyperbolic_q3_equal_sublattice_vacancy_density(pval, nval, vacancy_density,
                                                    seed=None, isocheck=False):
     if (pval % 2) != 0:
         raise ValueError
-    sparse_ham = general_q3_hamiltonian_superoptimized(pval, nval)
+    sparse_ham = general_hyperbolic_q3_hamiltonian(pval, nval)
 
     total_num_sites = number_points_q3_general_from_repeating_pattern(pval, nval)[1]
     num_sublat_sites = int(total_num_sites / 2)
@@ -55,7 +55,7 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_bulk_only(pval, nval, bulk_va
                                                              seed=None, isocheck=False):
     if (pval % 2) != 0:
         raise ValueError
-    sparse_ham = general_q3_hamiltonian_superoptimized(pval, nval)
+    sparse_ham = general_hyperbolic_q3_hamiltonian(pval, nval)
 
     points_per_level, total_num_sites = number_points_q3_general_from_repeating_pattern(pval, nval)
     num_sublat_bulk_sites = int(np.sum(points_per_level[:-1]) / 2)
@@ -90,7 +90,7 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_distance_restriction(pval, nv
                                                                         seed, isocheck=False):
     if (pval % 2) != 0:
         raise ValueError
-    sparse_ham = general_q3_hamiltonian_superoptimized(pval, nval)
+    sparse_ham = general_hyperbolic_q3_hamiltonian(pval, nval)
 
     total_num_sites = number_points_q3_general_from_repeating_pattern(pval, nval)[1]
     num_sublat_sites = int(total_num_sites / 2)
@@ -172,7 +172,7 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_bulk_only_distance_restrictio
                                                                                   seed, isocheck=False):
     if (pval % 2) != 0:
         raise ValueError
-    sparse_ham = general_q3_hamiltonian_superoptimized(pval, nval)
+    sparse_ham = general_hyperbolic_q3_hamiltonian(pval, nval)
 
     points_per_level, total_num_sites = number_points_q3_general_from_repeating_pattern(pval, nval)
     bulk_cutoff = int(np.sum(points_per_level[:-1]))
