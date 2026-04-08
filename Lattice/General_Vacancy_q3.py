@@ -266,6 +266,13 @@ def hyperbolic_q3_number_nonvacant_sites_bulk_only_distance_restriction(pval, nv
     return total_num_sites - 2 * round(vacancy_density * num_bulk_sublat_points, 0)
 
 
+def honeycomb_pbc_flake_number_nonvacant_sites_distance_restriction(nval, vacancy_density):
+    total_num_sites = honeycomb_points(nval)[1]
+    num_sublat_sites = int(total_num_sites / 2)
+    num_vacancies_on_sublat = round(vacancy_density * num_sublat_sites, 0)
+    return total_num_sites - 2 * num_vacancies_on_sublat
+
+
 def honeycomb_pbc_flake_equal_sublattice_vacancy_density_distance_restriction(nval, vacancy_density, seed,
                                                                               isocheck=False):
     sparse_ham = honeycomb_lattice_sparse_PBC(nval)
