@@ -125,6 +125,53 @@ def run_KPM_ADOS_parallel_vacancies_honeycomb(n_jobs, eigval_min, eigval_max,
     sf.close()
 
 
+def run_KPM_ADOS_parallel_vacancies_honeycomb_generate_hamiltonian_parallel(n_jobs, eigval_min, eigval_max,
+                                                                            nval, vac_density_list, number_moments,
+                                                                            num_rand_vecs, rand_vec_dim,
+                                                                            save_dir, save_name, save_index_list,
+                                                                            random_seeds, vacancy_honeycomb_func):
+
+    def run_routine(num_levels, vacancy_density, seed, ev_min, ev_max,
+                    nummoments, random_vecs_arr, savedir, savename, save_index):
+        sparse_ham = rescale_operator_unity_window(
+            vacancy_honeycomb_func(num_levels, vacancy_density, seed=seed, isocheck=True),
+            eigval_min=ev_min,
+            eigval_max=ev_max
+        )
+        result = moments_ADOS_general(sparse_ham, nummoments, random_vecs_arr)
+        np.save(savedir + '/' + savename + '_' + save_index, result)
+
+    with parallel_config(backend='loky'):
+        Parallel(n_jobs=n_jobs)(
+            delayed(run_routine)
+            (
+                nval,
+                vac_density,
+                randseed,
+                eigval_min,
+                eigval_max,
+                number_moments,
+                random_vectors_arr_generate(num_rand_vecs, rand_vec_dim),
+                save_dir,
+                save_name,
+                save_index
+            )
+            for (vac_density, randseed, save_index) in zip(vac_density_list, random_seeds, save_index_list)
+        )
+
+    metadata_dict = {
+        'nval': nval,
+        '(Vacancy density, random seed, save_index)': zip(vac_density_list, random_seeds, save_index_list),
+        'Number random vectors': num_rand_vecs,
+        'Number moments up to': number_moments,
+        'Eigenvalue extrema': (eigval_min, eigval_max)
+    }
+
+    sf = open(save_dir + '/' + 'metadata.pkl', 'wb')
+    pickle.dump(metadata_dict, sf)
+    sf.close()
+
+
 def generate_random_seeds_for_parallel_jobs(original_seed, number_of_jobs):
     seeds_generator = np.random.SeedSequence(original_seed)
     seeds = seeds_generator.spawn(number_of_jobs)
