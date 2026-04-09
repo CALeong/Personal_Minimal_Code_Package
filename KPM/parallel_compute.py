@@ -124,3 +124,8 @@ def run_KPM_ADOS_parallel_vacancies_honeycomb(n_jobs, eigval_min, eigval_max,
     pickle.dump(metadata_dict, sf)
     sf.close()
 
+
+def generate_random_seeds_for_parallel_jobs(original_seed, number_of_jobs):
+    seeds_generator = np.random.SeedSequence(original_seed)
+    seeds = seeds_generator.spawn(number_of_jobs)
+    return seeds
