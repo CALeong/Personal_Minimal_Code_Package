@@ -57,7 +57,7 @@ def run_KPM_ADOS_parallel_vacancies_q3(n_jobs, eigval_min, eigval_max,
             delayed(run_routine)
             (
                 rescale_operator_unity_window(
-                    vacancy_hyperbolicq3_func(pval, nval, vac_density, seed=randseed, isocheck=True),
+                    vacancy_hyperbolicq3_func(pval, nval, vac_density, seed=randseed, isocheck=True, equal_vd_check=True),
                     eigval_min=eigval_min,
                     eigval_max=eigval_max
                 ),
@@ -99,7 +99,7 @@ def run_KPM_ADOS_parallel_vacancies_honeycomb(n_jobs, eigval_min, eigval_max,
             delayed(run_routine)
             (
                 rescale_operator_unity_window(
-                    vacancy_honeycomb_func(nval, vac_density, seed=randseed, isocheck=True),
+                    vacancy_honeycomb_func(nval, vac_density, seed=randseed, isocheck=True, equal_vd_check=True),
                     eigval_min=eigval_min,
                     eigval_max=eigval_max
                 ),
