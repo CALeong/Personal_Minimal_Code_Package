@@ -271,3 +271,18 @@ def get_each_gen_one_plaquet_q4(pval, num_levels):
 
     return plaquet_sites.astype(np.int64)
 
+
+def sublattice_label_q4_small_system(pval, nval):
+    tbham = general_hamiltonian_q4(pval, nval)
+    tbham = tbham.toarray()
+    asites = np.arange(0, pval, 2, dtype=np.int64)
+    bsites = np.arange(1, pval, 2, dtype=np.int64)
+    while len(asites) != int(tbham.shape[0] / 2) or len(bsites) != int(tbham.shape[0] / 2):
+        for b in bsites:
+            asites = np.append(asites, np.where(tbham[b, :] != 0)[0])
+        for a in asites:
+            bsites = np.append(bsites, np.where(tbham[a, :] != 0)[0])
+        asites = np.unique(asites)
+        bsites = np.unique(bsites)
+
+    return asites, bsites
