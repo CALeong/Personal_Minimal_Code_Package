@@ -113,47 +113,34 @@ def moments_LDOS_general(sparse_rescaled_ham, number_moments, local_site_indices
     if number_moments >= 2:
         for nm in range(2, int(np.floor(number_moments/2))):
             if (nm + 1) % 64 == 0:
-                print('{} moments (plus extra) calculated in {} seconds'.format(nm + 1, time.time()-st))
-                st = time.time()
+                calculated_moments = np.unique(calculated_moments)
+                print('{} moments calculated in {} seconds'.format(len(calculated_moments), time.time()-st))
+
             prev_op_vec_prod, prevprev_op_vec_prod = chebyshev_polynomial_vector_recursion_calc_general(
                 sparse_rescaled_ham,
                 prevprev_op_vec_prod,
                 prev_op_vec_prod
             )
             if nm in calculated_moments:
-                continue
+                pass
             else:
                 moments[nm, :] = prev_op_vec_prod[local_site_indices, local_site_placeholder] / num_sites
-            moments[int(2*nm), :] = (2 * np.sum(prev_op_vec_prod * prev_op_vec_prod / num_sites, axis=0)
-                                     - moments[0, :])
-            moments[int(2*nm - 1), :] = (2 * np.sum(prev_op_vec_prod * prevprev_op_vec_prod / num_sites, axis=0)
-                                         - moments[1, :])
-            calculated_moments = np.append(calculated_moments, np.array([nm, int(2*nm), int(2*nm - 1)]))
-    # Handles half-way moment and last moment which remains to be calculated after going through above for loop
-    prev_op_vec_prod, prevprev_op_vec_prod = chebyshev_polynomial_vector_recursion_calc_general(
-        sparse_rescaled_ham,
-        prevprev_op_vec_prod,
-        prev_op_vec_prod
-    )
-    moments[int(np.floor(number_moments / 2)), :] = (prev_op_vec_prod[local_site_indices, local_site_placeholder]
-                                                     / num_sites)
+            moments[int(2 * nm), :] = (2 * np.sum(prev_op_vec_prod.conj() * prev_op_vec_prod / num_sites, axis=0)
+                                       - moments[0, :])
+            moments[int(2 * nm - 1), :] = (2 * np.sum(prev_op_vec_prod.conj() * prevprev_op_vec_prod / num_sites, axis=0)
+                                           - moments[1, :])
+            calculated_moments = np.append(calculated_moments, np.array([nm, int(2 * nm), int(2 * nm - 1)]))
 
-    moments[int(2 * int(np.floor(number_moments / 2)) - 1), :] = (2 * np.sum(prev_op_vec_prod
-                                                                             * prevprev_op_vec_prod
-                                                                             / num_sites, axis=0) - moments[1, :])
+        # Handles last moment which remains to be calculated after going through above for loop
+        prev_op_vec_prod, prevprev_op_vec_prod = chebyshev_polynomial_vector_recursion_calc_general(
+            sparse_rescaled_ham,
+            prevprev_op_vec_prod,
+            prev_op_vec_prod
+        )
 
-    # if number_moments >= 2:
-    #     for nm in range(2, number_moments):
-    #         if (nm + 1) % 10 == 0:
-    #             print('{} moments (plus extra) calculated in {} seconds'.format(nm + 1, time.time() - st))
-    #             st = time.time()
-    #         prev_op_vec_prod, prevprev_op_vec_prod = chebyshev_polynomial_vector_recursion_calc_general(
-    #             sparse_rescaled_ham,
-    #             prevprev_op_vec_prod,
-    #             prev_op_vec_prod
-    #         )
-    #
-    #         moments[nm, :] = np.sum((prev_op_vec_prod[local_site_indices, :] / num_sites), axis=1)
+        moments[int(2 * int(np.floor(number_moments / 2)) - 1), :] = (2 * np.sum(prev_op_vec_prod
+                                                                                 * prevprev_op_vec_prod
+                                                                                 / num_sites, axis=0) - moments[1, :])
 
     return moments
 
