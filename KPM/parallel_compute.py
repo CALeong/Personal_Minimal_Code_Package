@@ -84,6 +84,57 @@ def run_KPM_ADOS_parallel_vacancies_q3(n_jobs, eigval_min, eigval_max,
     sf.close()
 
 
+def run_KPM_ADOS_parallel_vacancies_q3_generate_hamiltonian_parallel(n_jobs, eigval_min, eigval_max,
+                                                                     pval, nval, vac_density_list, number_moments,
+                                                                     num_rand_vecs, rand_vec_dim,
+                                                                     save_dir, save_name, save_index_list,
+                                                                     random_seeds, vacancy_hyperbolicq3_func):
+
+    def run_routine(p_value, n_value, vd, r_seed, ev_min, ev_max, nummoments, n_rvecs, rvec_dim, savedir, savename, save_index):
+
+        sparse_ham = rescale_operator_unity_window(
+            vacancy_hyperbolicq3_func(p_value, n_value, vd, seed=r_seed, isocheck=True, equal_vd_check=True),
+            eigval_min=ev_min,
+            eigval_max=ev_max
+        )
+
+        result = moments_ADOS_general(sparse_ham, nummoments, random_vectors_arr_generate(n_rvecs, rvec_dim))
+        np.save(savedir + '/' + savename + '_' + save_index, result)
+
+    with parallel_config(backend='loky'):
+        Parallel(n_jobs=n_jobs)(
+            delayed(run_routine)
+            (
+                pval,
+                nval,
+                vac_density,
+                randseed,
+                eigval_min,
+                eigval_max,
+                number_moments,
+                num_rand_vecs,
+                rand_vec_dim,
+                save_dir,
+                save_name,
+                save_index
+            )
+            for (vac_density, randseed, save_index) in zip(vac_density_list, random_seeds, save_index_list)
+        )
+
+    metadata_dict = {
+        'pval': pval,
+        'nval': nval,
+        '(Vacancy density, random seed, save_index)': zip(vac_density_list, random_seeds, save_index_list),
+        'Number random vectors': num_rand_vecs,
+        'Number moments up to': number_moments,
+        'Eigenvalue extrema': (eigval_min, eigval_max)
+    }
+
+    sf = open(save_dir + '/' + 'metadata.pkl', 'wb')
+    pickle.dump(metadata_dict, sf)
+    sf.close()
+
+
 def run_KPM_ADOS_parallel_vacancies_honeycomb(n_jobs, eigval_min, eigval_max,
                                               nval, vac_density_list, number_moments,
                                               num_rand_vecs, rand_vec_dim,
