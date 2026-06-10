@@ -450,6 +450,8 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_bulk_only_distance_restrictio
     if equal_vd_check:
         check_result = check_equal_sublattice_vd(all_site_vacancies, asites, bsites)
         print('Is equal vacancy density on each sublattice maintained: {}'.format(check_result))
+        if not check_result:
+            raise ValueError('Equal sublattice vacancy density was not maintained!')
 
     non_vacancy_inds = np.setdiff1d(np.arange(total_num_sites).astype(np.int64), all_site_vacancies)
     sparse_ham = sparse_ham.tocsr()
@@ -458,6 +460,8 @@ def hyperbolic_q3_equal_sublattice_vacancy_density_bulk_only_distance_restrictio
     if isocheck:
         check_res = check_for_isolated_sites(sparse_ham)
         print('Are there any sites that have had all neighbors removed: {}'.format(check_res))
+        if check_res:
+            raise ValueError('Some site(s) have had all neighbors removed!')
 
     return sparse_ham
 
@@ -530,6 +534,8 @@ def honeycomb_pbc_flake_equal_sublattice_vacancy_density_distance_restriction(nv
     if equal_vd_check:
         check_result = check_equal_sublattice_vd(all_site_vacancies, asites, bsites)
         print('Is equal vacancy density on each sublattice maintained: {}'.format(check_result))
+        if not check_result:
+            raise ValueError('Equal sublattice vacancy density was not maintained!')
 
     non_vacancy_inds = np.setdiff1d(np.arange(total_num_sites).astype(np.int64), all_site_vacancies)
     sparse_ham = sparse_ham.tocsr()
@@ -538,6 +544,8 @@ def honeycomb_pbc_flake_equal_sublattice_vacancy_density_distance_restriction(nv
     if isocheck:
         check_res = check_for_isolated_sites(sparse_ham)
         print('Are there any sites that have had all neighbors removed: {}'.format(check_res))
+        if check_res:
+            raise ValueError('Some site(s) have had all neighbors removed!')
 
     return sparse_ham
 
