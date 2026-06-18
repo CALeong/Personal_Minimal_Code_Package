@@ -4,6 +4,7 @@ import numpy as np
 from KPM.measure import rescale_disorder_unity_window, rescale_operator_unity_window
 import scipy.sparse
 import pickle
+from Operations.Specific_Disorders import bond_disorder
 
 
 def random_vectors_arr_generate(num_rand_vecs, vec_dim):
@@ -213,6 +214,47 @@ def run_KPM_ADOS_parallel_vacancies_honeycomb_generate_hamiltonian_parallel(n_jo
     metadata_dict = {
         'nval': nval,
         '(Vacancy density, random seed, save_index)': zip(vac_density_list, random_seeds, save_index_list),
+        'Number random vectors': num_rand_vecs,
+        'Number moments up to': number_moments,
+        'Eigenvalue extrema': (eigval_min, eigval_max)
+    }
+
+    sf = open(save_dir + '/' + 'metadata.pkl', 'wb')
+    pickle.dump(metadata_dict, sf)
+    sf.close()
+
+
+def run_KPM_ADOS_parallel_bond_disorder(n_jobs, sparse_ham, W_list, number_moments,
+                                        num_rand_vecs, rand_vec_dim, eigval_min, eigval_max,
+                                        save_dir, save_name, save_index_list, seed_list):
+
+    def run_routine(original_sparse_ham, Wb, disorder_seed, num_moments, number_rand_vecs, random_vec_dim,
+                    savedir, savename, saveindex):
+
+        result = moments_ADOS_general(rescale_operator_unity_window(original_sparse_ham
+                                                                    + bond_disorder(Wb, original_sparse_ham, disorder_seed),
+                                                                    eigval_min=eigval_min, eigval_max=eigval_max),
+                                      num_moments,
+                                      random_vectors_arr_generate(number_rand_vecs, random_vec_dim))
+        np.save(savedir + '/' + savename + '_' + saveindex, result)
+
+    with parallel_config(backend='loky'):
+        Parallel(n_jobs=n_jobs)(
+            delayed(run_routine)
+            (sparse_ham,
+             W,
+             spec_seed,
+             number_moments,
+             num_rand_vecs,
+             rand_vec_dim,
+             save_dir,
+             save_name,
+             save_index)
+            for (W, save_index, spec_seed) in zip(W_list, save_index_list, seed_list)
+        )
+
+    metadata_dict = {
+        '(Wb, random seed, save_index)': zip(W_list, seed_list, save_index_list),
         'Number random vectors': num_rand_vecs,
         'Number moments up to': number_moments,
         'Eigenvalue extrema': (eigval_min, eigval_max)
