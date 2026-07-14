@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.sparse import dok_matrix
+from scipy.sparse import dok_array
 from Operations.Neighbors import identify_next_nearest_neighbors, convert_neighbors_list_to_hash_table
 
 
@@ -212,7 +212,7 @@ def general_hamiltonian_q4(pval, num_levels):
     t = 1
 
     points_per_level, total_num_points = number_points_q4_numeric(pval, num_levels)
-    ham = dok_matrix((total_num_points, total_num_points), dtype=np.int64)
+    ham = dok_array((total_num_points, total_num_points), dtype=np.int64)
 
     if num_levels <= 0:
         raise ValueError
@@ -238,6 +238,7 @@ def general_hamiltonian_q4(pval, num_levels):
 
         ham = intra_layer_connections_q4_from_motif(pval, num_levels, ham)
 
+    ham = ham.tocsr()
     return ham
 
 
