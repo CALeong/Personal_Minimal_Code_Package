@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.sparse import dok_matrix
+from Operations.Neighbors import identify_next_nearest_neighbors, convert_neighbors_list_to_hash_table
 
 
 def number_points_q4_numeric(p, num_levels):
@@ -284,5 +285,29 @@ def sublattice_label_q4_small_system(pval, nval):
             bsites = np.append(bsites, np.where(tbham[a, :] != 0)[0])
         asites = np.unique(asites)
         bsites = np.unique(bsites)
+
+    return asites, bsites
+
+
+def sublattice_label_q4(pval, nval):
+    tbham = general_hamiltonian_q4(pval, nval)
+    nnn_hash_table = convert_neighbors_list_to_hash_table(*identify_next_nearest_neighbors(tbham))
+    asites = np.arange(0, pval, 2).astype(np.int64)
+    not_yet_checked_asites = asites.copy()
+    checked_asites = np.array([], dtype=np.int64)
+    bsites = np.arange(1, pval, 2).astype(np.int64)
+    not_yet_checked_bsites = bsites.copy()
+    checked_bsites = np.array([], dtype=np.int64)
+    while (len(asites) != int(tbham.shape[0] / 2)) or (len(bsites) != int(tbham.shape[0] / 2)):
+        for na in not_yet_checked_asites:
+            asites = np.append(asites, nnn_hash_table[na])
+        for nb in not_yet_checked_bsites:
+            bsites = np.append(bsites, nnn_hash_table[nb])
+        asites = np.unique(asites)
+        bsites = np.unique(bsites)
+        checked_asites = np.append(checked_asites, not_yet_checked_asites)
+        checked_bsites = np.append(checked_bsites, not_yet_checked_bsites)
+        not_yet_checked_asites = np.setdiff1d(asites, checked_asites)
+        not_yet_checked_bsites = np.setdiff1d(bsites, checked_bsites)
 
     return asites, bsites
